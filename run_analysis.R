@@ -1,0 +1,25 @@
+library("dplyr")
+x_test <- read.table("test/X_test.txt")
+y_test <- read.table("test/y_test.txt")
+s_test <- read.table("test/subject_test.txt")
+x_train <- read.table("train/X_train.txt")
+y_train <- read.table("train/y_train.txt")
+s_train <- read.table("train//subject_train.txt")
+x <- rbind(x_test,x_train)
+y <- rbind(y_test,y_train)
+s <- rbind(s_test,s_train)
+data <- cbind(y,x)
+data <- cbind(s,data)
+name <- read.table("features.txt")
+name <- name[,2]
+name <- as.character(name)
+name <- c("activity",name)
+name <- c("subject",name)
+names(data) <- name
+valid_names <- make.names(names=names(data), unique=TRUE, allow_ = TRUE)
+names(data) <- valid_names
+data_1 <-  select(data, subject, activity, contains("mean.."), contains("std.."), -angle.tBodyAccJerkMean..gravityMean.)
+data_2 <- group_by(data_1,subject, activity)
+result <- summarise_each(data_2, funs(mean))
+write.table(result, file = "output.txt",row.name=FALSE) 
+
