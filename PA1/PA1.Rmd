@@ -1,0 +1,75 @@
+---
+title: "PA1"
+output: html_document
+---
+
+## Markdown file
+
+Code for reading in the dataset and/or processing the data
+```{r}
+  library("dplyr")
+  setwd("/Users/Ziwei/Desktop/Rworkspace")
+  f <- read.csv("activity.csv")
+```
+Histogram of the total number of steps taken each day
+```{r}
+  tot <- aggregate(steps ~ date, data = f, FUN = sum)
+  hist(tot$steps, main = "Histogram of total number of steps", xlab = "steps")
+```
+
+Mean and median number of steps taken each day
+```{r}
+  mean(tot$steps)
+  median(tot$steps)
+```
+Time series plot of the average number of steps taken
+```{r}
+  int_avg <- aggregate(steps ~ interval, data = f, FUN = mean, na.rm = TRUE)
+  plot(int_avg$interval,int_avg$steps, type = "l", ylab = "steps", xlab = "interval", main = "Time series plot of the average number of steps ")
+```
+
+The 5-minute interval that, on average, contains the maximum number of steps
+```{r}
+  m <- max(int_avg$steps)
+  int_avg$interval[int_avg$steps == m]
+```
+Code to describe and show a strategy for imputing missing data
+
+There are
+```{r}
+  sum(is.na(f$steps))
+```
+mssing data
+
+I use the mean for that 5-minute interval to imput the missing values
+```{r}
+  temp <- f[is.na(f$steps),]$interval
+  f[is.na(f$steps),]$steps <- int_avg$steps[match(f$interval[is.na(f$steps)], int_avg$interval)]
+```
+Histogram of the total number of steps taken each day after missing values are imputed
+```{r}
+  tot <- aggregate(steps ~ date, data = f, FUN = sum)
+  hist(tot$steps, main = "Histogram of total number of steps", xlab = "steps")
+```
+mean and median for new data set:
+```{r}
+  mean(tot$steps)
+  median(tot$steps)
+```
+We can see the mean and median do change after imputing missing values
+
+
+Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
+```{r}
+  f <- mutate(f,WD = weekdays(as.Date(f$date)))
+  f$WD = ifelse(f$WD %in% c("Saturday", "Sunday"), "weekend", "weekday")
+
+  par(mfcol = c(2,1))
+  int_avg <- aggregate(steps ~ interval, data = subset(f,WD == "weekday"), FUN = mean, na.rm = TRUE)
+  plot(int_avg$interval,int_avg$steps, type = "l", ylab = "steps", xlab = "interval", main = "Weekday average number of steps ")
+
+  int_avg <- aggregate(steps ~ interval, data = subset(f,WD == "weekend"), FUN = mean, na.rm = TRUE)
+  plot(int_avg$interval,int_avg$steps, type = "l", ylab = "steps", xlab = "interval", main = "Weekend average number of steps ")
+  
+```
+We can see the average of steps of weekdays and weekends are a little bit different.
